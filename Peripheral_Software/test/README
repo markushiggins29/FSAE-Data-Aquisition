@@ -1,11 +1,33 @@
+/************************************************************************
+                      ECD 524 - FSAE DATA AQUISITION
+                        Kyle Ferris, Markus Higgins 
+                                1/26/2025
 
-This directory is intended for PlatformIO Test Runner and project tests.
+This event driven software follows a finite state machine that governs 
+systems behavior. The states can be broken down as follows:
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+  INIT    - 
 
-More information about PlatformIO Unit Testing:
-- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+              Initialize ports & communication busses
+              Check for OOR sensor values
+
+  IDLE    - 
+
+              Check for COLLECT message from main board
+              Check for OOR sensor values
+
+  COLLECT - 
+
+              Analog sensors are sampled
+              Data is timestamped
+              Data is broadcasted
+              Check for IDLE message from main board
+              Check for OOR sensor values
+
+  FAULT   -
+
+              Broadcast fault message to main board
+              Fault LED On
+              Collection is stopped
+
+*************************************************************************/
