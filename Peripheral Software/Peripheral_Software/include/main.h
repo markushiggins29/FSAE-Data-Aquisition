@@ -37,6 +37,13 @@ interact directly with the sensors in the system.
     #define SENSOR_5 5
     #define SENSOR_6 6
 
+    #define FAULT_LIGHT 7
+
+    #define STATE_ID      0x181
+    #define STATE_IDLE    0x1
+    #define STATE_COLLECT 0x2
+    #define STATE_FAULT   0x3
+
     /************************************************************************
                                       TYPES
     *************************************************************************/
@@ -57,7 +64,7 @@ interact directly with the sensors in the system.
                 pin = pinNumber;
             }
 
-            uint32_t getRawValue(uint8_t pinNumber);
+            uint16_t getRawValue(uint8_t pinNumber);
 
         private:
 
@@ -68,6 +75,6 @@ interact directly with the sensors in the system.
     /************************************************************************
                                     PROTOTYPES
     *************************************************************************/
-
+    void configureSensors();
 
 #endif 

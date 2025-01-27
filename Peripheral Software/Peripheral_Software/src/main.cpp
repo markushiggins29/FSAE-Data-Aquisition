@@ -50,32 +50,26 @@ void loop()
   {
 
     case INIT:
+      
+      Serial.begin(SERIAL_RATE);
 
-        Serial.begin(SERIAL_RATE);
+      if (!CAN.begin(CAN_BAUD_RATE)) 
+      {
+        // Add custom error handling
+        state = FAULT; 
+      }
 
-        if (!CAN.begin(500000)) 
-        {
-          // Add custom error handling
-          state = FAULT; 
-        }
+      configureSensors();
 
-        // Driver-Side
-        sensor sns_dr_shock(SENSOR_1);
-        sensor sns_dr_brake_temp(SENSOR_2);
-        sensor sns_dr_wheel_speed(SENSOR_3); 
-
-        // Passenger-Side
-        sensor sns_ps_shock(SENSOR_4);
-        sensor sns_ps_brake_temp(SENSOR_5);
-        sensor sns_ps_wheel_speed(SENSOR_6); 
-
-        state = IDLE;
+      state = IDLE;
 
     break;
 
 
 
     case IDLE:
+
+      
 
     break;
 
