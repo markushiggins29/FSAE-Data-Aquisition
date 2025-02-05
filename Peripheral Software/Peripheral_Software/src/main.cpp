@@ -36,7 +36,6 @@ systems peripheral board. The states can be broken down as follows:
 #include "main.h"
 
 t_STATE state; 
-CANSAME5x CAN;
 
 void setup() 
 {
@@ -46,20 +45,35 @@ void setup()
 void loop()
 {
 
+  static CANSAME5x CAN_Write;
+  static CANSAME5x CAN_Read;
+
+  static uint32_t *p_incoming_id      = new uint32_t;
+  static uint32_t *p_incoming_dlc     = new uint32_t;
+  static uint8_t   p_incoming_data[8];
+
+  static sensor sns1(SENSOR_1); // maybe we should arbitrate this to just sensor 1, 2, 3 ... still trying to envision whats the most modular
+  static sensor sns2(SENSOR_2);
+  static sensor sns3(SENSOR_3); 
+  static sensor sns4(SENSOR_4);
+  static sensor sns5(SENSOR_5);
+  static sensor sns6(SENSOR_6); 
+
   switch(state)
   {
 
     case INIT:
-      
+
+      Serial.println("Current State: INIT");
+
+      pinMode(FAULT_LIGHT, OUTPUT);
+
       Serial.begin(SERIAL_RATE);
 
-      if (!CAN.begin(CAN_BAUD_RATE)) 
+      if(!initializeCanBus(&CAN_Read, &CAN_Write))
       {
-        // Add custom error handling
-        state = FAULT; 
+        state = FAULT;
       }
-
-      configureSensors();
 
       state = IDLE;
 
@@ -69,7 +83,10 @@ void loop()
 
     case IDLE:
 
-      
+      Serial.println("Current State: IDLE");
+
+      readCanBus( &CAN_Read, p_incoming_id, p_incoming_dlc, p_incoming_data );
+      masterStateControl(&state, p_incoming_id, p_incoming_data );
 
     break;
 
@@ -77,11 +94,25 @@ void loop()
 
     case COLLECT: 
 
+      Serial.println("Current State: COLLECT");
+
+      readSensors(&sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
+
+      readCanBus( &CAN_Read, p_incoming_id, p_incoming_dlc, p_incoming_data );
+      masterStateControl(&state, p_incoming_id, p_incoming_data );      
+
     break;
 
 
 
     case FAULT: 
+
+      Serial.println("Current State: FAULT");
+
+      digitalWrite(FAULT_LIGHT, HIGH);
+
+      readCanBus( &CAN_Read, p_incoming_id, p_incoming_dlc, p_incoming_data );
+      masterStateControl(&state, p_incoming_id, p_incoming_data );
 
     break;
 

@@ -18,6 +18,7 @@ interact directly with the sensors in the system.
 
     #include <Arduino.h>
     #include <stdint.h>
+    #include <stdbool.h>
 
     #include "CANController.h"
     #include "CANSAME5x_port.h"
@@ -39,10 +40,48 @@ interact directly with the sensors in the system.
 
     #define FAULT_LIGHT 7
 
-    #define STATE_ID      0x181
-    #define STATE_IDLE    0x1
-    #define STATE_COLLECT 0x2
-    #define STATE_FAULT   0x3
+    #define RX_STATE_ID      0x181
+    #define RX_STATE_IDLE    0x1
+    #define RX_STATE_COLLECT 0x2
+    #define RX_STATE_FAULT   0x3
+
+    // Sensor Message IDs are shifted up so that the lower bits (higher priority) are reserved
+    // Which sensor data is being sent from is held in the first byte of the data field 
+    // Each sensor will have a unique data id that way the master board knows from what peripheral
+    // it is recieving data.
+
+    #ifdef PERIPHERAL_1
+        #define TX_SENSOR_DATA_ID   0x010
+
+    #elif defined(PERIPHERAL_2) 
+        #define TX_SENSOR_DATA_ID   0x020
+
+    #elif defined(PERIPHERAL_3) 
+        #define TX_SENSOR_DATA_ID   0x030
+
+    #elif defined(PERIPHERAL_4) 
+        #define TX_SENSOR_DATA_ID   0x040
+
+    #elif defined(PERIPHERAL_5) 
+        #define TX_SENSOR_DATA_ID   0x050
+
+    #elif defined(PERIPHERAL_6) 
+        #define TX_SENSOR_DATA_ID   0x060
+                    
+    #endif
+
+    /************************************************************************
+                                      MASKS
+    *************************************************************************/
+
+    #define BYTE_ONE   0x00000000000000FF
+    #define BYTE_TWO   0x000000000000FF00
+    #define BYTE_THREE 0x0000000000FF0000
+    #define BYTE_FOUR  0x00000000FF000000
+    #define BYTE_FIVE  0x000000FF00000000
+    #define BYTE_SIX   0x0000FF0000000000
+    #define BYTE_SEVEN 0x00FF000000000000
+    #define BYTE_EIGHT 0xFF00000000000000
 
     /************************************************************************
                                       TYPES
@@ -64,17 +103,22 @@ interact directly with the sensors in the system.
                 pin = pinNumber;
             }
 
-            uint16_t getRawValue(uint8_t pinNumber);
+            void getRawValue(uint8_t pinNumber);
+            uint8_t getPin();
 
         private:
 
-            uint8_t pin;
+            uint8_t  pin;
+            uint16_t rawValue;
 
     };
 
     /************************************************************************
                                     PROTOTYPES
     *************************************************************************/
-    void configureSensors();
+    bool initializeCanBus(CANSAME5x *CAN_Read, CANSAME5x *CAN_Write);
+    void readCanBus(CANSAME5x *CAN_Read, uint32_t *p_incoming_id, uint32_t *incoming_dlc, uint8_t *p_incoming_data );
+    void masterStateControl(t_STATE *state, uint32_t *incoming_id, uint8_t *p_incoming_data );
+    void readSensors(sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6);
 
 #endif 
