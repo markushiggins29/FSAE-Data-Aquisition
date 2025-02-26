@@ -1,5 +1,5 @@
 /************************************************************************
-                                Functions
+                                functions.c
                       ECD 524 - FSAE DATA AQUISITION
                         Kyle Ferris, Markus Higgins 
                                 1/26/2025
@@ -29,50 +29,93 @@ bool initializeCanBus(CANSAME5x *CAN_Read, CANSAME5x *CAN_Write)
     return true;
 }
 
-void readCanBus(CANSAME5x *CAN_Read, uint32_t *incoming_id, uint32_t *incoming_dlc, uint8_t *p_incoming_data )
+void readCanBus(CANSAME5x *CAN_Read, uint16_t *p_incoming_id, uint8_t *p_incoming_dlc, uint8_t *p_incoming_data )
 {
     int incoming_packetSize = (*CAN_Read).parsePacket();
 
+    // Error check to ensure dlc matches sizeof data
+
     if (incoming_packetSize)
     {
-        *incoming_id  = (*CAN_Read).packetId();
-        *incoming_dlc = (*CAN_Read).packetDlc();
+        *p_incoming_id  = (*CAN_Read).packetId();
+        *p_incoming_dlc = (*CAN_Read).packetDlc();
 
-        for(uint8_t i = 0; i < *incoming_dlc; i++)
+        for(uint8_t i = 0; i < *p_incoming_dlc; i++)
         {
             *(p_incoming_data+i) = ( (*CAN_Read).read() & (BYTE_ONE<<(2*i)) );
         }
     }
 }
 
-void masterStateControl(t_STATE *state, uint32_t *p_incoming_id, uint8_t *p_incoming_data )
+void writeCanBus(CANSAME5x *CAN_Write, uint16_t outgoing_id, uint8_t outgoing_dlc, uint8_t *p_outgoing_data)
+{
+
+    // Error check to ensure dlc matches sizeof data
+
+    (*CAN_Write).beginPacket( outgoing_id );
+
+    for(uint8_t i = 0; i < outgoing_dlc; i++)
+    {
+        (*CAN_Write).write( *(p_outgoing_data+i) );
+    }
+
+    (*CAN_Write).endPacket();
+}
+
+void sendFaultMessage( uint8_t faultIdentifier, uint8_t faultCode, taskTimer *task, CANSAME5x *CAN_Write)
+{
+    if ( (faultCode > 0) )
+    {
+      if( (*task).b_timePassed() )
+      {
+        uint32_t currentTime = millis();
+        uint8_t openFaultDataArray[TX_FAULT_DLC] = {faultIdentifier, faultCode, SEL_BYTE_ONE(currentTime), SEL_BYTE_TWO(currentTime), SEL_BYTE_THREE(currentTime), SEL_BYTE_FOUR(currentTime) };
+        writeCanBus(CAN_Write, TX_SENSOR_FAULT_ID, TX_FAULT_DLC, openFaultDataArray);
+      }
+    }    
+}
+
+void sendSensorData( uint16_t peripheralIdentifier, uint8_t dataDLC, uint8_t sensorIdentifier, uint16_t sensorData, taskTimer *task, CANSAME5x *CAN_Write)
+{
+    if( (*task).b_timePassed() )
+    {
+        uint32_t currentTime = millis();
+        uint8_t sensorDataArray[dataDLC] = {sensorIdentifier, SEL_BYTE_ONE(sensorData), SEL_BYTE_TWO(sensorData), SEL_BYTE_ONE(currentTime), SEL_BYTE_TWO(currentTime), SEL_BYTE_THREE(currentTime), SEL_BYTE_FOUR(currentTime)};
+        writeCanBus(CAN_Write, peripheralIdentifier, dataDLC, sensorDataArray);
+    }  
+}
+
+void updateState(t_STATE *state, uint16_t *p_incoming_id, uint8_t *p_incoming_data )
 {
     if(*p_incoming_id == RX_STATE_ID)
     {
-    switch( p_incoming_data[1] ) // Assuming for now that the first byte contains the state we want
-    {
-        case RX_STATE_IDLE:
-        *state = IDLE;
-        break;
+        switch( p_incoming_data[1] ) // Assuming for now that the first byte contains the state we want
+        {
+            case RX_STATE_IDLE:
+            *state = IDLE;
+            break;
 
-        case RX_STATE_COLLECT:
-        *state = COLLECT;
-        break;
-        
-        case RX_STATE_FAULT:
-        *state = FAULT;
-        break;
-    }
+            case RX_STATE_COLLECT:
+            *state = COLLECT;
+            break;
+            
+            case RX_STATE_FAULT:
+            *state = FAULT;
+            break;
+        }
     }
 }
 
-void readSensors(sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6)
+void stateControl(CANSAME5x *CAN_Read,  t_STATE *state)
 {
-    (*sns1).getRawValue( (*sns1).getPin() );
-    (*sns2).getRawValue( (*sns2).getPin() );
-    (*sns3).getRawValue( (*sns3).getPin() );
-    (*sns4).getRawValue( (*sns4).getPin() );
-    (*sns5).getRawValue( (*sns5).getPin() );
-    (*sns6).getRawValue( (*sns6).getPin() );
-}
+    uint16_t incoming_id;
+    uint8_t incoming_dlc;
+    uint8_t incoming_data;
 
+    readCanBus( CAN_Read, &incoming_id, &incoming_dlc, &incoming_data );
+
+    if(incoming_id == RX_STATE_ID)
+    {
+        updateState(state, &incoming_id, &incoming_data ); 
+    }   
+}

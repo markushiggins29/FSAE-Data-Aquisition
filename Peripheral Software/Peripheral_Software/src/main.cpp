@@ -1,5 +1,5 @@
 /************************************************************************
-                               Main Program
+                                 main.cpp
                       ECD 524 - FSAE DATA AQUISITION
                         Kyle Ferris, Markus Higgins 
                                 1/26/2025
@@ -34,6 +34,8 @@ systems peripheral board. The states can be broken down as follows:
 *************************************************************************/
 
 #include "main.h"
+#include "sensors.h"
+#include "timer.h"
 
 t_STATE state; 
 
@@ -45,31 +47,42 @@ void setup()
 void loop()
 {
 
+  /************************************************************************
+                                  Variables
+  *************************************************************************/
+
   static CANSAME5x CAN_Write;
   static CANSAME5x CAN_Read;
 
-  static uint32_t *p_incoming_id      = new uint32_t;
-  static uint32_t *p_incoming_dlc     = new uint32_t;
-  static uint8_t   p_incoming_data[8];
+  // static uint16_t *p_incoming_id      = new uint16_t;
+  // static uint8_t *p_incoming_dlc      = new uint8_t;
+  // static uint8_t   p_incoming_data[8];
 
-  static sensor sns1(SENSOR_1); // maybe we should arbitrate this to just sensor 1, 2, 3 ... still trying to envision whats the most modular
+  static sensor sns1(SENSOR_1); 
   static sensor sns2(SENSOR_2);
   static sensor sns3(SENSOR_3); 
   static sensor sns4(SENSOR_4);
   static sensor sns5(SENSOR_5);
   static sensor sns6(SENSOR_6); 
 
+  static sensorFault sensorCodes;
+
+  static taskTimer task_sendOpenFaultCode(1000);
+  static taskTimer task_sendShortFaultCode(1000); 
+  static taskTimer task_sendData(100); 
+
+  /************************************************************************
+                                State Machine
+  *************************************************************************/  
+
   switch(state)
   {
 
     case INIT:
-
       Serial.println("Current State: INIT");
 
       pinMode(FAULT_LIGHT, OUTPUT);
-
       Serial.begin(SERIAL_RATE);
-
       if(!initializeCanBus(&CAN_Read, &CAN_Write))
       {
         state = FAULT;
@@ -80,43 +93,37 @@ void loop()
     break;
 
 
-
     case IDLE:
-
       Serial.println("Current State: IDLE");
 
-      readCanBus( &CAN_Read, p_incoming_id, p_incoming_dlc, p_incoming_data );
-      masterStateControl(&state, p_incoming_id, p_incoming_data );
-
     break;
-
 
 
     case COLLECT: 
-
       Serial.println("Current State: COLLECT");
 
       readSensors(&sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
-
-      readCanBus( &CAN_Read, p_incoming_id, p_incoming_dlc, p_incoming_data );
-      masterStateControl(&state, p_incoming_id, p_incoming_data );      
+      sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns1.getPin(), sns1.getRawValue(), &task_sendData, &CAN_Write);    
 
     break;
 
 
-
     case FAULT: 
-
       Serial.println("Current State: FAULT");
 
       digitalWrite(FAULT_LIGHT, HIGH);
-
-      readCanBus( &CAN_Read, p_incoming_id, p_incoming_dlc, p_incoming_data );
-      masterStateControl(&state, p_incoming_id, p_incoming_data );
 
     break;
 
   }
 
-}
+  /************************************************************************
+                              Default Behavior
+  *************************************************************************/
+  stateControl(&CAN_Read,  &state);
 
+  checkSensorFaults(&sensorCodes, &sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
+  sendFaultMessage( TX_OPEN_FAULT, sensorCodes.opens, &task_sendOpenFaultCode, &CAN_Write);
+  sendFaultMessage( TX_SHORT_FAULT, sensorCodes.shorts, &task_sendShortFaultCode, &CAN_Write);
+
+}
