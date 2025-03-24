@@ -17,12 +17,12 @@ This file contains the sensor related functions prototypes and macros
     /************************************************************************
                                     CONSTANTS
     *************************************************************************/
-    #define SENSOR_1 1
-    #define SENSOR_2 2
-    #define SENSOR_3 3
-    #define SENSOR_4 4
-    #define SENSOR_5 5
-    #define SENSOR_6 6
+    #define SENSOR_1 A0
+    #define SENSOR_2 A1
+    #define SENSOR_3 A2
+    #define SENSOR_4 A3
+    #define SENSOR_5 A4
+    #define SENSOR_6 A5
 
     #define SENSOR_SHORT 1000 // UPDATE ME BASED ON ADC VALUES
     #define SENSOR_OPEN  100 
@@ -59,13 +59,13 @@ This file contains the sensor related functions prototypes and macros
                 pin = pinNumber;
             }
 
-            void updateRawValue(uint8_t pinNumber);
-            uint8_t getPin();
-            uint8_t getRawValue();
+            void updateRawValue(int pinNumber);
+            int getPin();
+            uint16_t  getRawValue();
 
         private:
 
-            uint8_t  pin;
+            int  pin;
             uint16_t rawValue;
 
     };

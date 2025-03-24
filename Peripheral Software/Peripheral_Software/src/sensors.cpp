@@ -10,17 +10,17 @@ functions, and are ran on the peripheral board.
 *************************************************************************/
 #include "sensors.h"
 
-void sensor::updateRawValue(uint8_t pinNumber)
+void sensor::updateRawValue(int pinNumber)
 {
   rawValue = analogRead(pinNumber);
 }
 
-uint8_t sensor::getPin()
+int sensor::getPin()
 {
   return pin;
 }
 
-uint8_t sensor::getRawValue()
+uint16_t  sensor::getRawValue()
 {
   return rawValue;
 }

@@ -54,10 +54,6 @@ void loop()
   static CANSAME5x CAN_Write;
   static CANSAME5x CAN_Read;
 
-  // static uint16_t *p_incoming_id      = new uint16_t;
-  // static uint8_t *p_incoming_dlc      = new uint8_t;
-  // static uint8_t   p_incoming_data[8];
-
   static sensor sns1(SENSOR_1); 
   static sensor sns2(SENSOR_2);
   static sensor sns3(SENSOR_3); 
@@ -103,7 +99,7 @@ void loop()
       Serial.println("Current State: COLLECT");
 
       readSensors(&sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
-      sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns1.getPin(), sns1.getRawValue(), &task_sendData, &CAN_Write);    
+      sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns3.getPin(), sns3.getRawValue(), &task_sendData, &CAN_Write);    
 
     break;
 
@@ -120,10 +116,10 @@ void loop()
   /************************************************************************
                               Default Behavior
   *************************************************************************/
-  stateControl(&CAN_Read,  &state);
+  stateControl(&CAN_Read, &state);
 
-  checkSensorFaults(&sensorCodes, &sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
-  sendFaultMessage( TX_OPEN_FAULT, sensorCodes.opens, &task_sendOpenFaultCode, &CAN_Write);
-  sendFaultMessage( TX_SHORT_FAULT, sensorCodes.shorts, &task_sendShortFaultCode, &CAN_Write);
+  // checkSensorFaults(&sensorCodes, &sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
+  // sendFaultMessage( TX_OPEN_FAULT, sensorCodes.opens, &task_sendOpenFaultCode, &CAN_Write);
+  // sendFaultMessage( TX_SHORT_FAULT, sensorCodes.shorts, &task_sendShortFaultCode, &CAN_Write);
 
 }

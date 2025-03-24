@@ -89,7 +89,7 @@ void updateState(t_STATE *state, uint16_t *p_incoming_id, uint8_t *p_incoming_da
 {
     if(*p_incoming_id == RX_STATE_ID)
     {
-        switch( p_incoming_data[1] ) // Assuming for now that the first byte contains the state we want
+        switch( *p_incoming_data ) // Assuming for now that the first byte contains the state we want
         {
             case RX_STATE_IDLE:
             *state = IDLE;
@@ -113,9 +113,6 @@ void stateControl(CANSAME5x *CAN_Read,  t_STATE *state)
     uint8_t incoming_data;
 
     readCanBus( CAN_Read, &incoming_id, &incoming_dlc, &incoming_data );
+    updateState(state, &incoming_id, &incoming_data ); 
 
-    if(incoming_id == RX_STATE_ID)
-    {
-        updateState(state, &incoming_id, &incoming_data ); 
-    }   
 }

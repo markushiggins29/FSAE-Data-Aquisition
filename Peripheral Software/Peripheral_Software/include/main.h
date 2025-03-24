@@ -89,13 +89,13 @@ interact directly with the sensors in the system.
     #define BYTE_EIGHT (0xFF00000000000000)
 
     #define SEL_BYTE_ONE(variable)   ( (uint8_t)((variable & BYTE_ONE) >> 0) )
-    #define SEL_BYTE_TWO(variable)   ( (uint8_t)((variable & BYTE_TWO) >> 2) )
-    #define SEL_BYTE_THREE(variable) ( (uint8_t)((variable & BYTE_THREE) >> 4) )
-    #define SEL_BYTE_FOUR(variable)  ( (uint8_t)((variable & BYTE_FOUR) >> 6) )
-    #define SEL_BYTE_FIVE(variable)  ( (uint8_t)((variable & BYTE_FIVE) >> 8) )
-    #define SEL_BYTE_SIX(variable)   ( (uint8_t)((variable & BYTE_SIX) >> 10) )
-    #define SEL_BYTE_SEVEN(variable) ( (uint8_t)((variable & BYTE_SEVEN) >> 12) )
-    #define SEL_BYTE_EIGHT(variable) ( (uint8_t)((variable & BYTE_EIGHT) >> 14) )
+    #define SEL_BYTE_TWO(variable)   ( (uint8_t)((variable & BYTE_TWO) >> 8) )
+    #define SEL_BYTE_THREE(variable) ( (uint8_t)((variable & BYTE_THREE) >> 16) )
+    #define SEL_BYTE_FOUR(variable)  ( (uint8_t)((variable & BYTE_FOUR) >> 24) )
+    #define SEL_BYTE_FIVE(variable)  ( (uint8_t)((variable & BYTE_FIVE) >> 32) )
+    #define SEL_BYTE_SIX(variable)   ( (uint8_t)((variable & BYTE_SIX) >> 40) )
+    #define SEL_BYTE_SEVEN(variable) ( (uint8_t)((variable & BYTE_SEVEN) >> 48) )
+    #define SEL_BYTE_EIGHT(variable) ( (uint8_t)((variable & BYTE_EIGHT) >> 56) )
 
     /************************************************************************
                                       TYPES
