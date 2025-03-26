@@ -1,0 +1,4 @@
+partitions -  sections in storage that are divided up for a specific use 
+app0 - used for storing the program that is being flashed onto esp32 
+app1 - Used for OTA(over the air) updates, in our case we won't be 
+offset must start past 0x9000 

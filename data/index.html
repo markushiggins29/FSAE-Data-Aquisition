@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title> Data Acquisition Data </title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content ="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content = "ie=edge">
+
+ <link rel="icon" type="image/png" href="favicon.png"> 
+
+  <script src="chart.min.js"></script>  
+ <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"?></script> -->
+ .
+
+  <style>
+  button {
+    border:black;
+    color:white; 
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: solid;
+    display: inline-block;
+    transition-duration: 0.4s;
+    cursor:pointer;
+  }
+  body {
+    background-color:white;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: auto;
+    padding: auto;
+  }
+
+  h1 {
+    color:black;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  canvas {
+    border: 1px solid black;
+    background-blend-mode:forestgreen;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  }
+ 
+  .ChartCanvasContainer {
+    display:flex;
+    flex-direction: center;
+    justify-content: space;
+    gap: 100px;
+    margin-bottom: auto;
+  }
+ 
+
+ 
+  .EntireCanvasContainer {
+    display:flex;
+    flex-direction: row;
+    justify-content: space;
+    gap: 100px;}
+ 
+
+  </style>
+</head>
+<body>
+
+    <h1>Sensor Readings</h1>
+      <button class = "button" onclick="ButtonClick(document.getElementById)"> Start Collection </button>
+      <div class="ChartCanvasContainer" >
+        <canvas id="Vehicle Acceleration X" style="border:1px solid black"></canvas>
+        <canvas id="Vehicle Acceleration Y" style="border:1px solid black"></canvas>
+        <canvas id="Vehicle Acceleration Z" style="border:1px solid black"></canvas>
+        <canvas id="Vehicle Orientation" style="border:1px solid black"></canvas>
+      </div>
+   
+<script>
+      
+var URL = `ws://192.168.4.1/ws`;                      // ws:// specifies the protocol
+var websocket;                                                   // Variable called websocket
+//window.addEventListener('load', onload);            // Window is global, is represnts the web page being displayed, waits untill the page loads then runs the
+window.addEventListener('load', onload);
+ // window.setInterval(function() {UpdateLabelsAndData(AccChart);},500);
+
+function onload(event){
+  initWebSocket();
+
+}
+
+
+function initWebSocket() {
+    console.log("Initializing WebSocket");                       // Basically serial.print
+    websocket = new WebSocket(URL);                              // Assign the new object of the WebSocket class to the variable created earlier, like making an class object in C++
+     //.open/.close/.message are all event driven
+    websocket.onopen = PageOpened                          // .open = event triggers when page is opened
+    websocket.onclose = PageClosed                                 // .close = event triggers when page is closed
+    websocket.onmessage = ReceiveAndParse;                         // .message = event triggers when message is received
+}
+
+
+function PageOpened(event) {                              // Functions that have event in the parameter
+    console.log("Connection opened");
+    //clearCharts(AccChart);
+    //websocket.send("getData");
+   
+}
+
+function ButtonClick(){
+  console.log("button clicked"); 
+  websocket.send("Start Collection")
+
+}
+
+let retryCount = 0;
+function PageClosed(event) {
+    //window.setTimeout(initWebSocket,500);
+    //console.log('Connection closed');
+}
+
+
+
+function ReceiveAndParse(event) {
+    console.log(event.data);                                         //The event.data property contains the JSON string created before it was transmitted 
+    var Data = JSON.parse(event.data);                               //JSON.parse creates an object of 
+    //console.log("Data Measurement After JSON.parse:",Data); 
+                                                                    //Object.keys methods returns an array of all keys in the JSON message
+    var MessageKeys = Object.keys(Data);                            //In json Example: "temperature":"22", "temperature" is the key "22" is the value 
+    var MessageValues = Object.values(Data);
+                      
+    //console.log("Data keys:",MessageKeys);                          //Print keys
+    //console.log("Data values:",MessageValues);                      //Print values 
+
+
+    //For loop to run through each key and update the elemnt in the webpage with the same ID
+    for (var i = 0; i < MessageKeys.length; i++){
+        var CurrentKey = MessageKeys[i];
+        var timestamp = MessageValues[0];
+        if(CurrentKey == "Vehicle Acceleration X"){
+          UpdateLabelsAndData(AccXChart,MessageValues[i],timestamp);                                          //datasets[0] because a chart can have multiple datasets, each new dataset inside the datasat is a new value in the array
+        }
+        else if(CurrentKey == "Vehicle Acceleration Y"){
+          UpdateLabelsAndData(AccYChart,MessageValues[i],timestamp);                                          //datasets[0] because a chart can have multiple datasets, each new dataset inside the datasat is a new value in the array
+        }
+        else if(CurrentKey == "Vehicle Acceleration Z"){
+          UpdateLabelsAndData(AccZChart,MessageValues[i],timestamp);                                          //datasets[0] because a chart can have multiple datasets, each new dataset inside the datasat is a new value in the array
+        }
+        else if (CurrentKey == "Vehicle Orientation"){
+          UpdateLabelsAndData(GyroChart,MessageValues[i],timestamp);
+        }
+        /*
+        else if(CurrentKey == "Shock Travel Sensor: Left Rear"){
+          UpdateLabelsAndData(SLRChart,MessageValues[i],timestamp);
+        }
+        else if(CurrentKey == "Shock Travel Sensor: Right Rear"){
+           UpdateLabelsAndData(SRRChart,MessageValues[i],timestamp);
+        }
+        else if(CurrentKey == "Shock Travel Sensor: Front Left"){
+          UpdateLabelsAndData(SFLChart,MessageValues[i],timestamp);   
+        }
+        else if(CurrentKey == "Shock Travel Sensor: Front Right"){
+          UpdateLabelsAndData(SFRChart,MessageValues[i],timestamp);
+            
+        }*/   
+    }
+  
+}
+
+function clearCharts(Chart){
+  Chart.data.labels = 0; 
+  Chart.data.datasets[0].data = 0; 
+}
+
+function UpdateLabelsAndData(Chart,newData,timestamp) {
+  Chart.data.labels.shift();
+  Chart.data.datasets[0].data.shift();
+  //Chart.update();
+  Chart.data.labels.push(timestamp);
+  //Chart.data.datasets[0].data.push(getRandomData());
+  Chart.data.datasets[0].data.push(newData);
+
+
+  Chart.update();
+
+}
+
+
+
+/************************************************************************
+                            Acceleration Chart X
+*************************************************************************/
+//function createAccelChart(){
+      const chartLocationACCX = document.getElementById("Vehicle Acceleration X").getContext('2d');
+        var AccXChart = new Chart(chartLocationACCX, {
+          type: 'line',
+          data: {
+            labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'Acceleration in G (X-axis)',                    //Change to acceleration rate unit
+              data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          animations:{
+            tension: {
+              duration: 1000,
+              easing: 'linear',
+              from: 1,
+              to: 0,
+              loop: false
+            }
+            },
+          scales: {
+            y: {
+              beginAtZero: true
+          
+        }
+      }
+    }
+        });
+
+
+/************************************************************************
+                            Acceleration Chart Y
+*************************************************************************/
+//function createAccelChart(){
+  const chartLocationACCY = document.getElementById("Vehicle Acceleration Y").getContext('2d');
+        var AccYChart = new Chart(chartLocationACCY, {
+          type: 'line',
+          data: {
+            labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'Acceleration in G (Y-axis)',                    //Change to acceleration rate unit
+              data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          animations:{
+            tension: {
+              duration: 1000,
+              easing: 'linear',
+              from: 1,
+              to: 0,
+              loop: false
+            }
+            },
+          scales: {
+            y: {
+              beginAtZero: true
+          
+        }
+      }
+    }
+        });
+
+/************************************************************************
+                            Acceleration Chart Z
+*************************************************************************/
+//function createAccelChart(){
+  const chartLocationACCZ = document.getElementById("Vehicle Acceleration Z").getContext('2d');
+        var AccZChart = new Chart(chartLocationACCZ, {
+          type: 'line',
+          data: {
+            labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'Acceleration in G (Z-axis)  ',                    //Change to acceleration rate unit
+              data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          animations:{
+            tension: {
+              duration: 1000,
+              easing: 'linear',
+              from: 1,
+              to: 0,
+              loop: false
+            }
+            },
+          scales: {
+            y: {
+              beginAtZero: true
+          
+        }
+      }
+    }
+        });
+
+/************************************************************************
+                            Orientation Chart
+*************************************************************************/
+        const chartLocationGYRO = document.getElementById("Vehicle Orientation");
+        var GyroChart = new Chart(chartLocationGYRO, {
+          type: 'line',
+          data: {
+            labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14',],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'Angular velocity (°/s) ',                    //Change to acceleration rate unit
+              data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+              borderWidth: 1
+      }]
+    },
+    options: {
+          animations:{
+            tension: {
+              duration: 1000,
+              easing: 'linear',
+              from: 1,
+              to: 0,
+              loop: false
+            }
+            },
+          scales: {
+            y: {
+              beginAtZero: true
+          
+        }
+      }
+    }
+        });
+       
+/************************************************************************
+                            Shock Right Rear Chart
+*************************************************************************/  
+/*      
+        const chartLocationSRR = document.getElementById("Vehicle Shock Travel: Right Rear");
+        var SRRChart = new Chart(chartLocationSRR, {
+          type: 'line',
+          data: {
+            labels: ['1','2','3','4','5','6','7'],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'SSR Shock Travel Change in ',                    //Change to acceleration rate unit
+              data: [],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+        }
+      }
+    }
+        });
+      */
+/************************************************************************
+                            Shock Left Rear Chart
+*************************************************************************/  
+/*
+        const chartLocationSLR = document.getElementById("Vehicle Shock Travel: Left Rear");
+        var SLRChart = new Chart(chartLocationSLR, {
+          type: 'line',
+          data: {
+            labels: [],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'SLR Shock Travel Change in ',                    //Change to acceleration rate unit
+              data: [],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+        }
+      }
+    }
+        });
+*/
+/************************************************************************
+                            Shock Front Right Chart
+*************************************************************************/  
+/*
+        const chartLocationSFR = document.getElementById("Vehicle Shock Travel: Front Right");
+        var SFRChart = new Chart(chartLocationSFR, {
+          type: 'line',
+          data: {
+            labels: [],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'SFR Shock Travel Change in ',                    //Change to acceleration rate unit
+              data: [],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+        }
+      }
+    }
+        });
+*/
+/************************************************************************
+                            Shock Front Left Chart
+*************************************************************************/ 
+/*
+        const chartLocationSFL = document.getElementById("Vehicle Shock Travel: Front Left");
+        var SFLChart = new Chart(chartLocationSFL, {
+          type: 'line',
+          data: {
+            labels: [],     //For now is 1,2,3... but change to timestamps
+            datasets: [{
+              label: 'SFL Shock Travel Change in',                    //Change to acceleration rate unit
+              data: [],
+              borderWidth: 1
+      }]
+    },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+        }
+      }
+    }
+        });
+
+
+
+    <div class="ChartCanvasContainer">
+        <canvas id="Vehicle Shock Travel: Right Rear" style="border:1px solid black"></canvas>
+        <canvas id="Vehicle Shock Travel: Left Rear" style="border:1px solid black"></canvas>
+        <canvas id="Vehicle Shock Travel: Front Right" style="border:1px solid black"></canvas>
+        <canvas id="Vehicle Shock Travel: Front Left" style="border:1px solid black"></canvas>
+      </div>       
+
+*/
+</script>
+</body>
+</html>
+
