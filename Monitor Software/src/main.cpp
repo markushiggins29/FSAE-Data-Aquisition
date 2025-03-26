@@ -37,14 +37,9 @@ void setup()
   Serial.begin(115200);                                                                   //Start the serial communication 
   delay(1000);  
   initializeLittleFS();                                                                   //Initialize filesystem    
-  Serial.println("Got past FS");      
-  
-  initializeWifi();                                                                       //Initialize Wifi
-  Serial.println("Got past Wifi"); 
+  initializeWifi();                                                                       //Initialize Wifi 
   initializeWebSocket();                                                                  //Initiazlie WebSocket
-  Serial.println("Got past WebSocket"); 
-  //ServerBegin();                                                                          //Initial page serving 
-  Serial.println("Got past Server Begin");
+  ServerBegin();                                                                          //Initial page serving 
     
   Serial.print("setup complete");
 }
@@ -56,9 +51,6 @@ void setup()
 
 void loop() 
 {        
-  delay(1000);
-  
-  updateClientWebpage(getSensorReadings()); 
+  delay(100);
   ws.cleanupClients();
-
 }
