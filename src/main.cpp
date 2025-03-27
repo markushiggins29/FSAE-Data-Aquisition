@@ -34,16 +34,11 @@ void setup() {
   Serial.begin(115200);                                                                   //Start the serial communication 
   delay(1000);  
   
-  initializeLittleFS();                                                                   //Initialize filesystem    
-  Serial.println("Got past FS");      
-  
+  InitializeSensors();
+  initializeLittleFS();                                                                   //Initialize filesystem         
   initializeWifi();                                                                       //Initialize Wifi
-  Serial.println("Got past Wifi"); 
-  initializeWebSocket();                                                                  //Initiazlie WebSocket
-  Serial.println("Got past WebSocket");                                                                       //Initialize CAN
+  initializeWebSocket();                                                                  //Initiazlie WebSocket                                                                       //Initialize CAN
   ServerBegin();                                                                          //Initial page serving 
-  Serial.println("Got past Server Begin");
-  Serial.print("setup complete");
 }
 
 /************************************************************************
