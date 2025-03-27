@@ -119,8 +119,7 @@ function PageClosed(event) {
 
 function ReceiveAndParse(event) {
     console.log(event.data);                                         //The event.data property contains the JSON string created before it was transmitted 
-    var Data = JSON.parse(event.data);                               //JSON.parse creates an object of 
-    //console.log("Data Measurement After JSON.parse:",Data); 
+    var Data = JSON.parse(event.data);                          
                                                                     //Object.keys methods returns an array of all keys in the JSON message
     var MessageKeys = Object.keys(Data);                            //In json Example: "temperature":"22", "temperature" is the key "22" is the value 
     var MessageValues = Object.values(Data);
@@ -186,7 +185,6 @@ function UpdateLabelsAndData(Chart,newData,timestamp) {
 /************************************************************************
                             Acceleration Chart X
 *************************************************************************/
-//function createAccelChart(){
       const chartLocationACCX = document.getElementById("Vehicle Acceleration X").getContext('2d');
         var AccXChart = new Chart(chartLocationACCX, {
           type: 'line',
@@ -221,7 +219,6 @@ function UpdateLabelsAndData(Chart,newData,timestamp) {
 /************************************************************************
                             Acceleration Chart Y
 *************************************************************************/
-//function createAccelChart(){
   const chartLocationACCY = document.getElementById("Vehicle Acceleration Y").getContext('2d');
         var AccYChart = new Chart(chartLocationACCY, {
           type: 'line',
@@ -255,7 +252,6 @@ function UpdateLabelsAndData(Chart,newData,timestamp) {
 /************************************************************************
                             Acceleration Chart Z
 *************************************************************************/
-//function createAccelChart(){
   const chartLocationACCZ = document.getElementById("Vehicle Acceleration Z").getContext('2d');
         var AccZChart = new Chart(chartLocationACCZ, {
           type: 'line',
