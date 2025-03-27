@@ -1,6 +1,6 @@
 #include "main.h"
 
-const char* ssid = "ESP32";                                         // Configure Name of the network
+const char* ssid = "ESP32";                                                 // Configure Name of the network
 const char* password = "password";  
 AsyncWebServer server(80);                                                  // Creates an instance (object) of the AsyncWebServer class on port 80, port 80 is the default port used for HTTP handshake
 AsyncWebSocket ws("/ws"); 
@@ -12,30 +12,6 @@ JSONVar sensorReadings;
  void initializeWifi() {
   WiFi.mode(WIFI_AP);                                                       // Set the wifi mode as an access point
   Serial.println("Connecting to Wifi..");    
-        
-                       
-  /*
-  
-  
-  bool status = WiFi.softAP(ssid,password,1);                               // Returns either 1 or 0 for connection verification
-  
-  Serial.printf("status: %i",status);
-
-  if (status){
-    Serial.println("Connected to WiFi ");                             
-    Serial.println(WiFi.softAPIP());                                        //Print the IP address
-  }
-  /*
-  else while(!status){
-    Serial.println("Connecting to WiFi ");
-    Serial.print(".");
-    delay(1000);
-  }
-    
-  else{
-    Serial.print("Error");
-  }
-  */
  }
 
 /************************************************************************
@@ -48,27 +24,6 @@ void initializeLittleFS() {
 
   Serial.println("LittleFS configured successfully");
   }
-
-/************************************************************************
-                        FILESYSTEM TEST
-*************************************************************************/
-void TestLittleFS() {
-    //int usedBytes = LittleFS.usedBytes();
-    //int bytesLeft = LittleFS.totalBytes() - usedBytes; 
-    //File file = LittleFS.open("main.cpp");
-    //while(file.available()){
-    //    Serial.print(file.read());
-    //}
-    //Serial.printf("File size is :%i",file.size());
-    //file.close(); 
-
-    //Serial.printf("Number of usedBytes on the Flash:%i",usedBytes);
-    
-    //Serial.printf("number of Bytes open on the Flash:%i",bytesLeft)
-    
-
-}
-
 
 /************************************************************************
                         UPDATE CLIENT PAGE
@@ -87,10 +42,6 @@ String getSensorReadings(){                                                 ////
   pinMode(32 ,INPUT);
   pinMode(35 ,INPUT);
   
-  analogReadResolution(12);       //9-12
-  //analogSetClockDiv(1);           //1 2 3 or 4
-  //analogSetAttenuation(ADC_0db); //or 0db, 2_5db, 6db 
-  //analogSetVRefPin(34)               //25, 26, or 27
   int CalGyroReading = analogRead(34) - 1700; 
   int AccZReading = analogRead(33);
   int AccYReading = analogRead(32);
@@ -109,29 +60,27 @@ String getSensorReadings(){                                                 ////
   sensorReadings["Vehicle Acceleration x"]= AccXReading;    
   sensorReadings["Vehicle Acceleration Y"]= AccYReading;    
   sensorReadings["Vehicle Acceleration Z"]= AccZReading;       
-  //sensorReadings["Shock Travel Sensor: Front Left"];     
-  //sensorReadings["Shock Travel Sensor: Right Rear"];    
-  //sensorReadings["Shock Travel Sensor: Left Rear"];     
+     
   
 
-  String jsonString = JSON.stringify(sensorReadings);                       // Serialization: converting a JS object/array into a string, when transmitting to a server, string type is best because it fits most data structures
+  String jsonString = JSON.stringify(sensorReadings);                                    // Serialization: converting a JS object/array into a string, when transmitting to a server, string type is best because it fits most data structures
   return jsonString;                                                         
 }
 
 
 void StartReading(){
-  String sensorReadings = getSensorReadings();                          // Get sensor readings string
+  String sensorReadings = getSensorReadings();                                            // Get sensor readings string
   Serial.print(sensorReadings);                                     
    updateClientWebpage(sensorReadings);  
    
 } 
 
 void InitializeSensors(){
-  Serial.begin(115200); 
-  pinMode(34,OUTPUT);
+  pinMode(34,INPUT);
+  pinMode(33 ,INPUT);
+  pinMode(32 ,INPUT);
+  pinMode(35 ,INPUT);
   analogReadResolution(12);       //9-12
-  analogSetClockDiv(1);           //1 2 3 or 4
-  analogSetAttenuation(ADC_0db); //or 0db, 2_5db, 6db 
   //analogSetVRefPin(34)               //25, 26, or 27
 }
 
