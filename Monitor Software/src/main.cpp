@@ -85,7 +85,7 @@ void loop()
       initializeLittleFS(); 
       initializeWifi();
       initializeWebSocket();
-      //ServerBegin();    
+      ServerBegin();    
 
       state = IDLE;
     break;
@@ -162,6 +162,11 @@ void loop()
         writeFile(SD, fileName, scaledLengthReadingIn_txt);        
       }
       break;      
+
+      //Create string of sensor readings from acc and gyro, needs shock data + timestamp added to it in getSensorReadings function
+      String sensorReadings = getSensorReadings();
+      updateClientWebpage(sensorReadings); 
+
     }
 
 
@@ -173,7 +178,7 @@ void loop()
   /************************************************************************
                               Default Behavior
   *************************************************************************/  
-  updateClientWebpage(getSensorReadings()); 
   ws.cleanupClients();
+  delay(100);
 
 }

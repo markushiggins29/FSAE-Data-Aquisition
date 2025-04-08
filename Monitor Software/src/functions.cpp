@@ -105,7 +105,7 @@ String getSensorReadings(){                                                 ////
   sensorReadings["Vehicle Orientation"] = CalRotation;                                 //JSONVar are dynamic, can hold different types of data, inside the [] is the key, the parameter inside String() is the value 
   sensorReadings["Vehicle Acceleration X"]= RoundedAccelX;  
   sensorReadings["Vehicle Acceleration Y"]= RoundedAccelY;  
-  sensorReadings["Vehicle Acceleration Z"]= RoundedAccelZ; 
+  sensorReadings["Shock Travel"]= ;   //put shock travel value here 
 
   String jsonString = JSON.stringify(sensorReadings);                       // Serialization: converting a JS object/array into a string, when transmitting to a server, string type is best because it fits most data structures
   return jsonString;                                                         

@@ -32,20 +32,7 @@
       overflow: hidden;
     }
 
-    .welcome-page, .chart-page {
-      display: none;
-      width: 100%;
-      height: 100%;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-
-    .welcome-page {
-      display: flex;
-      background-color: #f0f0f0;
-    }
-
+ 
     .ChartCanvasContainer {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -100,26 +87,18 @@
 </head>
 <body>
 
-    <!-- Welcome Page -->
-    <div class="welcome-page" id="welcomePage">
-      <div>
-        <h1>ECD524 Data Acquisition System</h1>
-        <p>Click the button below to start collecting data and view the charts.</p>
-        <button onclick="switchScreens()">Start Data Collection</button>
-      </div>
-    </div>
-
-
-    <!-- Chart Page -->
   <div class="chart-page" id="chartPage">
     <div class="wrapper">
       <div class="ChartCanvasContainer">
         <canvas id="Vehicle Acceleration X"></canvas>
         <canvas id="Vehicle Acceleration Y"></canvas>
-        <canvas id="Vehicle Acceleration Z"></canvas>
+        <canvas id="Shock Travel"></canvas>
         <canvas id="Vehicle Orientation"></canvas>
       </div>
     </div>
+  </div>
+
+  <button id="startButton" onclick="ButtonClick()">Start Data Collection </button>
   </div>
 
   <script>
@@ -128,11 +107,6 @@
     var websocket;
 
     window.addEventListener('load', onload);
-
-    function switchScreens(){
-      document.getElementById("welcomePage").style.display = "none";
-      document.getElementById("chartPage").style.display = "flex";
-    }
 
     function onload(event) {
       initWebSocket();
@@ -155,8 +129,6 @@
       websocket.send("Start Collection");
     }
 
-    let retryCount = 0;
-
     function PageClosed(event) {}
 
     function ReceiveAndParse(event) {
@@ -172,8 +144,8 @@
           UpdateLabelsAndData(AccXChart, MessageValues[i], timestamp);
         } else if (CurrentKey == "Vehicle Acceleration Y") {
           UpdateLabelsAndData(AccYChart, MessageValues[i], timestamp);
-        } else if (CurrentKey == "Vehicle Acceleration Z") {
-          UpdateLabelsAndData(AccZChart, MessageValues[i], timestamp);
+        } else if (CurrentKey == "Shock Travel") {
+          UpdateLabelsAndData(ShockChart, MessageValues[i], timestamp);
         } else if (CurrentKey == "Vehicle Orientation") {
           UpdateLabelsAndData(GyroChart, MessageValues[i], timestamp);
         }
@@ -260,16 +232,16 @@
     });
 
     /************************************************************************
-                            Acceleration Chart Z
+                            Shock Travel 
     *************************************************************************/
-    const chartLocationACCZ = document.getElementById("Vehicle Acceleration Z").getContext('2d');
-    var AccZChart = new Chart(chartLocationACCZ, {
+    const chartLocationShock = document.getElementById("Shock Travel").getContext('2d');
+    var ShockChart = new Chart(chartLocationShock, {
       type: 'line',
       data: {
         labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],
         datasets: [{
-          label: 'Acceleration in G (Z-axis)',
-          data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          label: 'Shock Travel in cm  ',
+          data: [8,8,8,8,8,8,8,8,8,8,8,8,8,8],
           borderWidth: 3,  
           borderColor: 'rgb(255, 193, 7)',  
           fill: false 
@@ -279,14 +251,14 @@
         scales: {
           y: {
             beginAtZero: true,
-            min: -2,
-            max: 2,
+            min: 8,
+            max: 11,
             ticks: {
-              stepSize: 0.25,
+              stepSize: 0.2,
             },
           },
           x: {
-            beginAtZero: true,
+            beginAtZero: false,
           }
         }
       }
