@@ -81,8 +81,8 @@
     sensorReadings["Packet ID"];    
   
     String jsonString = JSON.stringify(sensorReadings);                       // Serialization: converting a JS object/array into a string, when transmitting to a server, string type is best because it fits most data structures
-    Serial.println("Data string created");
-    Serial.println();
+    //Serial.println("Data string created");
+    //Serial.println();
     return jsonString;                                                         
   }
 
@@ -153,4 +153,13 @@
     server.serveStatic("/", LittleFS, "/");                                                //Serve any files that are static like pictures of styling files like CSS or JS
     server.begin();                                                                        //Begin listening for new client requests
   
+  }
+
+
+  /************************************************************************
+                            START COLLECTION
+  *************************************************************************/
+  bool startCollectingStateControl()
+  {
+    return true;
   }

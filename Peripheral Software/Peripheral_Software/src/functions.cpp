@@ -109,8 +109,8 @@ void updateState(t_STATE *state, uint16_t *p_incoming_id, uint8_t *p_incoming_da
 void stateControl(CANSAME5x *CAN_Read,  t_STATE *state)
 {
     uint16_t incoming_id;
-    uint8_t incoming_dlc;
-    uint8_t incoming_data;
+    uint8_t  incoming_dlc;
+    uint8_t  incoming_data;
 
     readCanBus( CAN_Read, &incoming_id, &incoming_dlc, &incoming_data );
     updateState(state, &incoming_id, &incoming_data ); 

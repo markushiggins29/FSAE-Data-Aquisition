@@ -14,7 +14,13 @@ interact directly with the sensors in the system.
   /************************************************************************
                                   INCLUDES
   *************************************************************************/  
-  #include <ESP32CAN.h>
-  #include <CAN_config.h>
+  #include <Arduino.h>
+  #include <esp32_can.h>
+
+  /************************************************************************
+                                 PROTOTYPES
+  *************************************************************************/  
+  void sendCanMessage(uint16_t message_ID, uint8_t message_DLC, uint8_t *p_outgoing_data);
+  void readCanBus(CAN_FRAME *message, uint16_t *p_message_ID, uint8_t *p_message_DLC, uint8_t *p_incoming_data);
 
 #endif

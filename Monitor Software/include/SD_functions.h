@@ -6,7 +6,10 @@
 
 This file contains the includes, constants, types,  and function prototypes 
 necessary to run the main program on the systems peripheral devices that
-interact directly with the sensors in the system.   
+interact directly with the sensors in the system.  
+
+ * For more info see file README.md in this library or on URL:
+ * https://github.com/espressif/arduino-esp32/tree/master/libraries/SD
 *************************************************************************/
 
 #ifndef SD_H
@@ -20,6 +23,14 @@ interact directly with the sensors in the system.
     #include "FS.h"
     #include "SD.h"
     #include "SPI.h"
+
+    /************************************************************************
+                                SPI DEFINITIONS
+    *************************************************************************/    
+    #define SPI_SCK  23
+    #define SPI_MISO 22
+    #define SPI_MOSI 21
+    #define SPI_CS   19 
 
     /************************************************************************
                                     PROTOTYPES

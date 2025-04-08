@@ -28,36 +28,151 @@ systems monitor board. The states can be broken down as follows:
 #include "CAN_functions.h"
 #include "SD_functions.h"
 
+t_state state;
+
 /************************************************************************
                                     SETUP
 *************************************************************************/
 void setup() 
-{   
-  
-  Serial.begin(115200);                                                                   //Start the serial communication 
-  delay(1000);  
-  initializeLittleFS();                                                                   //Initialize filesystem    
-  Serial.println("Got past FS");      
-  
-  initializeWifi();                                                                       //Initialize Wifi
-  Serial.println("Got past Wifi"); 
-  initializeWebSocket();                                                                  //Initiazlie WebSocket
-  Serial.println("Got past WebSocket"); 
-  //ServerBegin();                                                                          //Initial page serving 
-  Serial.println("Got past Server Begin");
-    
-  Serial.print("setup complete");
+{
+  Serial.begin(SERIAL_RATE); 
+
+  state = INIT;
 }
 
 /************************************************************************
                                     MAIN LOOP
 *************************************************************************/
-
-
 void loop() 
 {        
-  delay(1000);
-  
+  static uint16_t incomingMessageID;
+  static uint8_t  incomingMessageDLC;
+  static uint8_t  incomingData[8];
+  static uint8_t  sensorID;
+  static uint16_t sensorReading;
+  static uint32_t timestamp;
+  static float    scaledLengthReadingIn;
+  static char     scaledLengthReadingIn_txt[64];
+  static char     fileName[64];
+  static char     sensorNumber[4]; 
+
+  switch(state)
+  {
+    case INIT:
+      Serial.println("State: INIT");
+
+      SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SPI_CS);   
+      if (!SD.begin(SPI_CS)) 
+      {
+        Serial.println("Card Mount Failed");
+        state = FAULT;
+      }
+      // OLD Library - miwagner/ESP32CAN@^0.0.1
+      // CAN_cfg.speed = CAN_SPEED_500KBPS;
+      // // CAN_cfg.tx_pin_id = GPIO_NUM_5;
+      // // CAN_cfg.rx_pin_id = GPIO_NUM_4;
+      // CAN_cfg.tx_pin_id = GPIO_NUM_32;
+      // CAN_cfg.rx_pin_id = GPIO_NUM_35;      
+      // CAN_cfg.rx_queue = xQueueCreate(RX_QUEUE_SIZE, sizeof(CAN_frame_t));
+      // ESP32Can.CANInit();
+      CAN0.setCANPins(GPIO_NUM_35, GPIO_NUM_32);
+      CAN0.begin(500000);
+      CAN0.watchFor();
+
+      delay(1000);  
+
+      // Web Server & Wifi Initializations
+      initializeLittleFS(); 
+      initializeWifi();
+      initializeWebSocket();
+      //ServerBegin();    
+
+      state = IDLE;
+    break;
+
+    case IDLE:
+      Serial.println("State: IDLE");
+      if(startCollectingStateControl())
+      {
+        uint8_t collect_message = TX_STATE_COLLECT;
+        delay(100);
+        sendCanMessage(TX_STATE_ID, TX_STATE_DLC, &collect_message);
+
+        state = COLLECT;
+      }
+    break;
+
+    case COLLECT:
+    {
+      //Serial.println("State: COLLECT");
+      CAN_FRAME message;
+      if(CAN0.read(message))
+      {
+        readCanBus(&message, &incomingMessageID, &incomingMessageDLC, incomingData);
+        // All Data is timestamped with a 4 byte timestamp
+        // Every message follows the structure:Byte 0 - Sensor ID, Byte 1:2 - Sensor Data, Byte 3:6 - Timestamp
+        sensorID = incomingData[0];
+        itoa(sensorID, sensorNumber, 10);
+        sensorReading  = 0;
+        sensorReading |= incomingData[1];
+        sensorReading |= incomingData[2]<<8;
+
+        for(uint8_t i=2; i < 6; i++)
+        {
+          timestamp |= (incomingData[i+1] << (i*8) );
+        }
+
+        // If message is a shock travel length
+        scaledLengthReadingIn = (((float)sensorReading/(float)1024)*(11.19-(float)8))+(float)8;
+        // itoa(scaledLengthReadingIn, scaledLengthReadingIn_txt, 10);
+        dtostrf(scaledLengthReadingIn, 6, 2, scaledLengthReadingIn_txt);
+        strcat(scaledLengthReadingIn_txt,",");
+
+        // Create file name based on message ID and the first byte
+        switch(incomingMessageID)
+        {
+          case 0x100:
+            strcpy(fileName, "/Peripheral_1_Sensor_");
+            strcat(fileName,sensorNumber);
+          break; 
+          case 0x200:
+            strcpy(fileName, "/Peripheral_2_Sensor_");
+            strcat(fileName, sensorNumber);
+          break;
+          case 0x300:
+            strcpy(fileName, "/Peripheral_3_Sensor_");
+            strcat(fileName, sensorNumber);
+          break;
+          case 0x400:
+            strcpy(fileName, "/Peripheral_4_Sensor_");
+            strcat(fileName, sensorNumber);
+          break;
+          case 0x500:
+            strcpy(fileName, "/Peripheral_5_Sensor_");
+            strcat(fileName, sensorNumber);
+          break;
+          case 0x600:
+            strcpy(fileName, "/Peripheral_6_Sensor_");
+            strcat(fileName, sensorNumber);
+          break;
+          default:
+          break;
+        }
+
+        writeFile(SD, fileName, scaledLengthReadingIn_txt);        
+      }
+      break;      
+    }
+
+
+    case FAULT:
+      Serial.println("State: FAULT");
+    break;
+  }
+
+  /************************************************************************
+                              Default Behavior
+  *************************************************************************/  
   updateClientWebpage(getSensorReadings()); 
   ws.cleanupClients();
 
