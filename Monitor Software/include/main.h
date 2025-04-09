@@ -87,12 +87,13 @@ interact directly with the sensors in the system.
     *************************************************************************/
     
     void initializeWifi();
-    void WebSocketResponse(void *pArg, uint8_t *pData, size_t len);
+    //bool WebSocketResponse(void *pArg, uint8_t *pData, size_t len);
+    void WebSocketResponse(void *pArg,uint8_t *pData, size_t len);
     void WebSocketEventHandling(AsyncWebSocket *pSocket, AsyncWebSocketClient *pClient, AwsEventType type, void *pArg, uint8_t *pData, size_t len);
     void initializeWebSocket();
     void initializeCAN();
     void initializeLittleFS();
-    String getSensorReadings();
+    String getSensorReadings(float scaledLengthReadingIn);
     void updateClientWebpage(String sensorReadings);
     void ServerBegin();
     bool startCollectingStateControl();

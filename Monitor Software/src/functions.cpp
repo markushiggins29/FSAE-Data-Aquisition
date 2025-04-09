@@ -36,7 +36,7 @@ void updateClientWebpage(String sensorReadings){
 /************************************************************************
                      CONVERT JSON VARIABLE to STRING
 *************************************************************************/
-String getSensorReadings(){                                                 ////JSON format:{"key":"value", ....}
+String getSensorReadings(float scaledLengthReadingIn){                                                 ////JSON format:{"key":"value", ....}
    
   pinMode(36 ,INPUT);
   pinMode(39 ,INPUT);
@@ -98,26 +98,26 @@ String getSensorReadings(){                                                 ////
   //Round to two decimal places
   double RoundedAccelX = std::round(AccelX *100) /100.0;
 
- 
+ if(scaledLengthReadingIn > 11){
+  scaledLengthReadingIn = 11; 
+ }
+ else if (scaledLengthReadingIn < 8){
+  scaledLengthReadingIn = 8; 
+ }
+
+ double roundedLengthReadingIn = std::round(scaledLengthReadingIn *100) /100.0; 
  
   //String creation
   sensorReadings["Time Recorded"] = 1;               
   sensorReadings["Vehicle Orientation"] = CalRotation;                                 //JSONVar are dynamic, can hold different types of data, inside the [] is the key, the parameter inside String() is the value 
   sensorReadings["Vehicle Acceleration X"]= RoundedAccelX;  
   sensorReadings["Vehicle Acceleration Y"]= RoundedAccelY;  
-  sensorReadings["Shock Travel"]= ;   //put shock travel value here 
+  sensorReadings["Shock Travel"]= roundedLengthReadingIn;   //put shock travel value here 
 
   String jsonString = JSON.stringify(sensorReadings);                       // Serialization: converting a JS object/array into a string, when transmitting to a server, string type is best because it fits most data structures
   return jsonString;                                                         
 }
 
-
-void StartReading(){
-  String sensorReadings = getSensorReadings();                          // Get sensor readings string
-  Serial.print(sensorReadings);                                     
-   updateClientWebpage(sensorReadings);  
-   
-} 
 
 void InitializeSensors(){
   Serial.begin(115200); 
@@ -133,12 +133,17 @@ void InitializeSensors(){
 /************************************************************************
                         SEND DATA AFTER CLIENT REQUEST
 *************************************************************************/
-void WebSocketResponse(void *pArg,uint8_t *pData, size_t len){
-
-      String incomingMessage = (char*) pData;
-      Serial.print(incomingMessage); 
-      //if (strcmp((char*)pData,"Start Collection") == 0){
-     }
+void WebSocketResponse(void *pArg,uint8_t *pData, size_t len)
+{
+  String incomingMessage = (char*) pData;
+  Serial.print(incomingMessage); 
+  if (strcmp((char*)pData,"Start Collection") == 0)
+  {}
+  //{
+  //  return true;
+  //}
+  //return false;
+}
   
 
 
@@ -192,4 +197,9 @@ void ServerBegin(){
   server.serveStatic("/", LittleFS, "/");                                                //Serve any files that are static like pictures of styling files like CSS or JS
   server.begin();                                                                        //Begin listening for new client requests
 
+}
+
+bool startCollectingStateControl()
+{
+  return true;
 }

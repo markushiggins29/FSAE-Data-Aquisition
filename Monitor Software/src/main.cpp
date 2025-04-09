@@ -67,14 +67,6 @@ void loop()
         Serial.println("Card Mount Failed");
         state = FAULT;
       }
-      // OLD Library - miwagner/ESP32CAN@^0.0.1
-      // CAN_cfg.speed = CAN_SPEED_500KBPS;
-      // // CAN_cfg.tx_pin_id = GPIO_NUM_5;
-      // // CAN_cfg.rx_pin_id = GPIO_NUM_4;
-      // CAN_cfg.tx_pin_id = GPIO_NUM_32;
-      // CAN_cfg.rx_pin_id = GPIO_NUM_35;      
-      // CAN_cfg.rx_queue = xQueueCreate(RX_QUEUE_SIZE, sizeof(CAN_frame_t));
-      // ESP32Can.CANInit();
       CAN0.setCANPins(GPIO_NUM_35, GPIO_NUM_32);
       CAN0.begin(500000);
       CAN0.watchFor();
@@ -92,7 +84,7 @@ void loop()
 
     case IDLE:
       Serial.println("State: IDLE");
-      if(startCollectingStateControl())
+      if( /*WebSocketResponse(void *pArg,uint8_t *pData, size_t len)*/ startCollectingStateControl())
       {
         uint8_t collect_message = TX_STATE_COLLECT;
         delay(100);
@@ -160,14 +152,14 @@ void loop()
         }
 
         writeFile(SD, fileName, scaledLengthReadingIn_txt);        
-      }
-      break;      
+      }    
 
       //Create string of sensor readings from acc and gyro, needs shock data + timestamp added to it in getSensorReadings function
-      String sensorReadings = getSensorReadings();
+      String sensorReadings = getSensorReadings(scaledLengthReadingIn);
       updateClientWebpage(sensorReadings); 
 
     }
+    break;  
 
 
     case FAULT:
