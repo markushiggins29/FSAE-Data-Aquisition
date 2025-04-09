@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Data Acquisition Data</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <script src="chart.min.js"></script> 
+  <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+
+
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: white;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+ 
+    .ChartCanvasContainer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
+      width: 90%; 
+      height: 90%; 
+      justify-items: center;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important; 
+      border: 2px solid black;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px; 
+    }
+
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; 
+      align-items: center;
+      flex: 1;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="chart-page" id="chartPage">
+    <div class="wrapper">
+      <div class="ChartCanvasContainer">
+        <canvas id="Vehicle Acceleration X"></canvas>
+        <canvas id="Vehicle Acceleration Y"></canvas>
+        <canvas id="Shock Travel"></canvas>
+        <canvas id="Vehicle Orientation"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <button id="startButton" onclick="ButtonClick()">Start Data Collection </button>
+  </div>
+
+  <script>
+
+    var URL = `ws://192.168.4.1/ws`; // ws:// specifies the protocol
+    var websocket;
+
+    window.addEventListener('load', onload);
+
+    function onload(event) {
+      initWebSocket();
+    }
+
+    function initWebSocket() {
+      console.log("Initializing WebSocket");
+      websocket = new WebSocket(URL);
+      websocket.onopen = PageOpened;
+      websocket.onclose = PageClosed;
+      websocket.onmessage = ReceiveAndParse;
+    }
+
+    function PageOpened(event) {
+      console.log("Connection opened");
+    }
+
+    function ButtonClick() {
+      console.log("button clicked");
+      websocket.send("Start Collection");
+    }
+
+    function PageClosed(event) {}
+
+    function ReceiveAndParse(event) {
+      console.log(event.data);
+      var Data = JSON.parse(event.data);
+      var MessageKeys = Object.keys(Data);
+      var MessageValues = Object.values(Data);
+
+      for (var i = 0; i < MessageKeys.length; i++) {
+        var CurrentKey = MessageKeys[i];
+        var timestamp = MessageValues[0];
+        if (CurrentKey == "Vehicle Acceleration X") {
+          UpdateLabelsAndData(AccXChart, MessageValues[i], timestamp);
+        } else if (CurrentKey == "Vehicle Acceleration Y") {
+          UpdateLabelsAndData(AccYChart, MessageValues[i], timestamp);
+        } else if (CurrentKey == "Shock Travel") {
+          UpdateLabelsAndData(ShockChart, MessageValues[i], timestamp);
+        } else if (CurrentKey == "Vehicle Orientation") {
+          UpdateLabelsAndData(GyroChart, MessageValues[i], timestamp);
+        }
+      }
+    }
+
+    function clearCharts(Chart) {
+      Chart.data.labels = [];
+      Chart.data.datasets[0].data = [];
+    }
+
+    function UpdateLabelsAndData(Chart, newData, timestamp) {
+      Chart.data.labels.shift();
+      Chart.data.datasets[0].data.shift();
+      Chart.data.labels.push(timestamp);
+      Chart.data.datasets[0].data.push(newData);
+      Chart.update();
+    }
+
+    /************************************************************************
+                            Acceleration Chart X
+    *************************************************************************/
+    const chartLocationACCX = document.getElementById("Vehicle Acceleration X").getContext('2d');
+    var AccXChart = new Chart(chartLocationACCX, {
+      type: 'line',
+      data: {
+        labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],
+        datasets: [{
+          label: 'Acceleration in G (X-axis)',
+          data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          borderWidth: 3,  
+          borderColor: 'rgb(0, 123, 255)',  
+          fill: false 
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: -2,
+            max: 2,
+            ticks: {
+              stepSize: 0.25,
+            },
+          },
+          x: {
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+
+    /************************************************************************
+                            Acceleration Chart Y
+    *************************************************************************/
+    const chartLocationACCY = document.getElementById("Vehicle Acceleration Y").getContext('2d');
+    var AccYChart = new Chart(chartLocationACCY, {
+      type: 'line',
+      data: {
+        labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],
+        datasets: [{
+          label: 'Acceleration in G (Y-axis)',
+          data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          borderWidth: 3,  
+          borderColor: 'rgb(40, 167, 69)',  
+          fill: false 
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: -2,
+            max: 2,
+            ticks: {
+              stepSize: 0.25,
+            },
+          },
+          x: {
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+
+    /************************************************************************
+                            Shock Travel 
+    *************************************************************************/
+    const chartLocationShock = document.getElementById("Shock Travel").getContext('2d');
+    var ShockChart = new Chart(chartLocationShock, {
+      type: 'line',
+      data: {
+        labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],
+        datasets: [{
+          label: 'Shock Travel in inches  ',
+          data: [8,8,8,8,8,8,8,8,8,8,8,8,8,8],
+          borderWidth: 3,  
+          borderColor: 'rgb(255, 193, 7)',  
+          fill: false 
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: 8,
+            max: 11,
+            ticks: {
+              stepSize: 0.2,
+            },
+          },
+          x: {
+            beginAtZero: false,
+          }
+        }
+      }
+    });
+
+    /************************************************************************
+                            Orientation Chart
+    *************************************************************************/
+    const chartLocationGYRO = document.getElementById("Vehicle Orientation").getContext('2d');
+    var GyroChart = new Chart(chartLocationGYRO, {
+      type: 'line',
+      data: {
+        labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'],
+        datasets: [{
+          label: 'Angular velocity (°/s)',
+          data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          borderWidth: 3,  
+          borderColor: 'rgb(255, 99, 132)',  
+          fill: false 
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: -250,
+            max: 250,
+            ticks: {
+              stepSize: 30,
+            },
+          },
+          x: {
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+
+  </script>
+</body>
+</html>
