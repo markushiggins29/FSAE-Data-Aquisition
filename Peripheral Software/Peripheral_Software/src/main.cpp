@@ -62,6 +62,7 @@ void loop()
   static sensor sns6(SENSOR_6); 
 
   static sensorFault sensorCodes;
+  static uint8_t connectedSensors;
 
   static taskTimer task_sendOpenFaultCode(1000);
   static taskTimer task_sendShortFaultCode(1000); 
@@ -84,6 +85,13 @@ void loop()
         state = FAULT;
       }
 
+      pinMode(SENSOR_1_CONNECTED, INPUT);
+      pinMode(SENSOR_2_CONNECTED, INPUT);
+      pinMode(SENSOR_3_CONNECTED, INPUT);
+      pinMode(SENSOR_4_CONNECTED, INPUT);
+      pinMode(SENSOR_5_CONNECTED, INPUT);
+      pinMode(SENSOR_6_CONNECTED, INPUT);
+
       state = IDLE;
 
     break;
@@ -96,10 +104,41 @@ void loop()
 
 
     case COLLECT: 
-      Serial.println("Current State: COLLECT");
+       Serial.println("Current State: COLLECT");
 
       readSensors(&sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
-      sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns3.getPin(), sns3.getRawValue(), &task_sendData, &CAN_Write);    
+      connectedSensors = 0;
+      connectedSensors = checkSensorConnected();
+      if(connectedSensors & BIT_ZERO)
+      {
+        Serial.println("Sensor 1");
+        sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns1.getPin(), sns1.getRawValue(), &task_sendData, &CAN_Write); 
+      }
+      if(connectedSensors & BIT_ONE)
+      {
+        Serial.println("Sensor 2");
+        sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns2.getPin(), sns2.getRawValue(), &task_sendData, &CAN_Write); 
+      }
+      if(connectedSensors & BIT_TWO)
+      {
+        Serial.println("Sensor 3");
+        sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns3.getPin(), sns3.getRawValue(), &task_sendData, &CAN_Write); 
+      }
+      if(connectedSensors & BIT_THREE)
+      {
+       Serial.println("Sensor 4");
+        sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns4.getPin(), sns4.getRawValue(), &task_sendData, &CAN_Write); 
+      }
+      if(connectedSensors & BIT_FOUR)
+      {
+        Serial.println("Sensor 5");
+        sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns5.getPin(), sns5.getRawValue(), &task_sendData, &CAN_Write); 
+      }
+      if(connectedSensors & BIT_FIVE)
+      {
+        Serial.println("Sensor 6");
+        sendSensorData( TX_SENSOR_DATA_ID, TX_DATA_DLC, sns6.getPin(), sns6.getRawValue(), &task_sendData, &CAN_Write); 
+      }
 
     break;
 
@@ -118,8 +157,18 @@ void loop()
   *************************************************************************/
   stateControl(&CAN_Read, &state);
 
+}
+
+
+
+
+
+
+
+
+  /*************************************************************************/
+  // NEEDS POLISHING
+  /*************************************************************************/
   // checkSensorFaults(&sensorCodes, &sns1, &sns2, &sns3, &sns4, &sns5, &sns6);
   // sendFaultMessage( TX_OPEN_FAULT, sensorCodes.opens, &task_sendOpenFaultCode, &CAN_Write);
   // sendFaultMessage( TX_SHORT_FAULT, sensorCodes.shorts, &task_sendShortFaultCode, &CAN_Write);
-
-}

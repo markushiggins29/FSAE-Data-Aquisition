@@ -24,6 +24,13 @@ This file contains the sensor related functions prototypes and macros
     #define SENSOR_5 A4
     #define SENSOR_6 A5
 
+    #define SENSOR_1_CONNECTED 4
+    #define SENSOR_2_CONNECTED 1
+    #define SENSOR_3_CONNECTED 0
+    #define SENSOR_4_CONNECTED 23
+    #define SENSOR_5_CONNECTED 24
+    #define SENSOR_6_CONNECTED 25
+
     #define SENSOR_SHORT 1000 // UPDATE ME BASED ON ADC VALUES
     #define SENSOR_OPEN  100 
 
@@ -76,6 +83,7 @@ This file contains the sensor related functions prototypes and macros
     void    readSensors(sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6);
     uint8_t checkSensorShort(sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6);
     uint8_t checkSensorOpen(sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6);
+    uint8_t checkSensorConnected();
     void    checkSensorFaults(sensorFault * sensorCodes, sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6);
 
 #endif

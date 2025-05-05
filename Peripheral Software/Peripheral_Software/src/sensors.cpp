@@ -95,8 +95,40 @@ uint8_t checkSensorOpen(sensor * sns1, sensor * sns2, sensor * sns3, sensor * sn
   {
     openSensor |= BIT_FIVE;
   }   
-  
+
   return openSensor;  
+}
+
+uint8_t checkSensorConnected()
+{
+  uint8_t connectedSensor = 0;
+
+  if( !digitalRead(SENSOR_1_CONNECTED))
+  {
+    connectedSensor |= BIT_ZERO;
+  }
+  if( !digitalRead(SENSOR_2_CONNECTED) )
+  {
+    connectedSensor |= BIT_ONE;
+  }
+  if( !digitalRead(SENSOR_3_CONNECTED) )
+  {
+    connectedSensor |= BIT_TWO;
+  }
+  if( !digitalRead(SENSOR_4_CONNECTED) )
+  {
+    connectedSensor |= BIT_THREE;
+  }
+  if( !digitalRead(SENSOR_5_CONNECTED) )
+  {
+    connectedSensor |= BIT_FOUR;
+  }
+  if( !digitalRead(SENSOR_6_CONNECTED) )
+  {
+    connectedSensor |= BIT_FIVE;
+  } 
+
+  return connectedSensor;  
 }
 
 void checkSensorFaults(sensorFault * sensorCodes, sensor * sns1, sensor * sns2, sensor * sns3, sensor * sns4, sensor * sns5, sensor * sns6)
